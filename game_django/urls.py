@@ -14,9 +14,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-# from django.contrib import admin
-from django.urls import path
+from django.contrib import admin
+from django.urls import path, include
 
 urlpatterns = [
-    #    path("admin/", admin.site.urls),
+    path('admin/', admin.site.urls),  # <--- 将 /admin/ 路径指向 Django admin 应用
+    path('', include('gamecore.urls')),  # <--- 将 / 路径指向 gamecore 应用
 ]

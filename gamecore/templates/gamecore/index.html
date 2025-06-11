@@ -1,11 +1,49 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI Image Game</title>
-</head>
+    <title>AI 图像对抗游戏</title>
+    </head>
 <body>
-    <h1>欢迎来到 AI 对抗提示词生成图像小游戏！</h1>
-    <p>游戏主舞台将在这里呈现。</p>
+
+    <h1>AI 对抗提示词生成图像小游戏</h1>
+
+    <div id="game-container">
+        <div id="game-setup">
+            <p><strong>原图 (用于参考):</strong></p>
+            <img id="original-image" src="https://picsum.photos/seed/start/400" alt="Original Image" width="400">
+        </div>
+
+        <hr>
+
+        <div id="player-controls">
+            <h3>你的回合</h3>
+            <label for="player-prompt-input">输入你的提示词:</label><br>
+            <textarea id="player-prompt-input" rows="4" cols="50" placeholder="例如: a cat wearing a wizard hat"></textarea><br>
+            <button id="submit-prompt-button">生成图片 & 对比结果</button>
+            <p id="loading-indicator" style="display: none;">正在生成中，请稍候...</p>
+        </div>
+
+        <hr>
+
+        <div id="results-display" style="display: none;">
+            <h2>结果对比</h2>
+            <div style="display: flex; justify-content: space-around;">
+                <div>
+                    <h4>你的生成图 (相似度: <span id="player-score"></span>%)</h4>
+                    <img id="player-generated-image" src="" alt="Player's Image" width="256">
+                </div>
+                <div>
+                    <h4>AI 的生成图 (相似度: <span id="ai-score"></span>%)</h4>
+                    <img id="ai-generated-image" src="" alt="AI's Image" width="256">
+                </div>
+            </div>
+            <p><strong>AI 根据原图生成的提示词是:</strong> <span id="ai-prompt"></span></p>
+            <h3>本轮胜者是: <span id="winner"></span>!</h3>
+        </div>
+    </div>
+
+    <script src="{% static 'gamecore/js/main.js' %}"></script>
 </body>
 </html>

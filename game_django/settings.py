@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv  # 导入 load_dotenv 用于加载 .env 文件
+
+# 加载 .env 文件中的环境变量
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,11 +36,14 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
+    'django.contrib.admin',         # <--- Django 管理后台应用
+    'django.contrib.auth',          # 认证框架
+    'django.contrib.contenttypes',  # 内容类型框架 (被其他应用使用)
+    'django.contrib.sessions',      # 会话框架
+    'django.contrib.messages',      # 消息框架
+    'django.contrib.staticfiles',   # 管理静态文件 (CSS, JavaScript, Images)
+    'gamecore.apps.GamecoreConfig',  # gamecore应用配置
+    'rest_framework',  # Django REST framework
 ]
 
 MIDDLEWARE = [
@@ -73,9 +81,16 @@ WSGI_APPLICATION = "game_django.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME'),             # 从环境变量读取
+        'USER': os.getenv('DB_USER'),             # 从环境变量读取
+        'PASSWORD': os.getenv('DB_PASSWORD'),       # 从环境变量读取
+        'HOST': os.getenv('DB_HOST', 'localhost'),  # 从环境变量读取, 如果没有则默认为 'localhost'
+        'PORT': os.getenv('DB_PORT', '3306'),     # 从环境变量读取, 如果没有则默认为 '3306'
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+        },
     }
 }
 
