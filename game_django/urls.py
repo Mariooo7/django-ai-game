@@ -16,8 +16,22 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # <--- 将 /admin/ 路径指向 Django admin 应用
     path('', include('gamecore.urls')),  # <--- 将 / 路径指向 gamecore 应用
+
+    # 用户认证相关的 URL
+    path('api/auth/', include('dj_rest_auth.urls')),
+    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
+    # 生成登录/登出的 URL
+    path('accounts/', include('allauth.urls')),
+    path('api-auth/', include('rest_framework.urls')),
+
 ]
+
+# 在 DEBUG 为 True 时添加 media 文件的 URL
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -36,14 +36,26 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # django内置应用程序
     'django.contrib.admin',         # <--- Django 管理后台应用
     'django.contrib.auth',          # 认证框架
     'django.contrib.contenttypes',  # 内容类型框架 (被其他应用使用)
     'django.contrib.sessions',      # 会话框架
     'django.contrib.messages',      # 消息框架
     'django.contrib.staticfiles',   # 管理静态文件 (CSS, JavaScript, Images)
+    'django.contrib.sites',  # dj-rest-auth/allauth 依赖的站点框架
+
+    # 自定义应用程序
     'gamecore.apps.GamecoreConfig',  # gamecore应用配置
+
+    # 第三方库
     'rest_framework',  # Django REST framework
+    'rest_framework.authtoken',  # Django REST framework 的 token 认证
+    'dj_rest_auth',  # Django REST framework 的认证和注册视图
+    'dj_rest_auth.registration',  # Django REST framework 的注册视图
+    'allauth',  # Django allauth 框架\
+    'allauth.account',  # Django allauth 框架的账户应用
+    'allauth.socialaccount',  # Django allauth 框架的社交账户应用
 ]
 
 MIDDLEWARE = [
@@ -54,6 +66,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",  # 添加 allauth 中间件
 ]
 
 ROOT_URLCONF = "game_django.urls"
@@ -139,3 +152,20 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # 配置媒体文件存储
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# django-allauth 配置
+SITE_ID = 1
+
+# 配置 dj-rest-auth 认证方式为 token 认证
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 1. SessionAuthentication: 允许在可浏览 API 中使用 Django 的 session 登录
+        'rest_framework.authentication.SessionAuthentication',
+        # 2. TokenAuthentication: 允许前端应用通过发送 Token 来进行认证
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
+
+# 配置 allauth 邮箱验证
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # 开发时设置为 'none' 以跳过验证
+ACCOUNT_EMAIL_REQUIRED = True  # 注册时需要验证邮箱

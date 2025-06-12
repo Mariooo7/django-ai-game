@@ -1,7 +1,6 @@
 from django.urls import path
 from . import views  # 从当前目录导入 views.py
-from django.conf import settings
-from django.conf.urls.static import static
+
 
 urlpatterns = [
     # 当访问应用的根路径时 (比如 /gamecore/ 或者我们之后设置的网站根路径 /)，
@@ -17,6 +16,3 @@ urlpatterns = [
     path('api/play_turn/', views.PlayTurnAPIView.as_view(), name='api_play_turn'),
 ]
 
-# 在 DEBUG 为 True 时添加 media 文件的 URL
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
