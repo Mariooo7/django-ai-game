@@ -14,5 +14,12 @@ urlpatterns = [
 
     # 创建一个 API 端点，用于处理游戏回合。
     path('api/play_turn/', views.PlayTurnAPIView.as_view(), name='api_play_turn'),
+
+    # 创建一个 API 端点，用于处理历史记录的获取。
+    path('api/history/', views.GameRoundHistoryAPIView.as_view(), name='api_history'),
+
+    # 创建一个 API 端点，用于处理排行榜的获取。
+    path('api/leaderboard/', views.LeaderboardAPIView.as_view(), name='api_leaderboard'),
+
 ]
 

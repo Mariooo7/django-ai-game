@@ -38,3 +38,14 @@ class GameRoundResultSerializer(serializers.ModelSerializer):
 class GameStartSerializer(serializers.Serializer):
     # ImageField 用于处理文件上传。`required=False`表示这个字段是可选的。
     uploaded_image = serializers.ImageField(required=False)
+
+# 为排行榜创建序列化器
+class LeaderboardSerializer(serializers.Serializer):
+    """
+    用于格式化排行榜聚合查询的结果。
+    这里的字段名必须与我们稍后在视图查询中定义的注解名完全一致。
+    """
+    # read_only=True 表示这些字段仅用于序列化输出，不用于反序列化输入。
+    username = serializers.CharField(read_only=True)
+    win_count = serializers.IntegerField(read_only=True)
+    avg_win_margin = serializers.FloatField(read_only=True)

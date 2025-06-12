@@ -1,6 +1,7 @@
 # 导入必要的模块
 from django.shortcuts import render # 用于渲染模板
-from rest_framework.views import APIView  # 从DRF导入APIView，这是创建API视图的基础类
+from rest_framework.views import APIView # 从DRF导入APIView，这是创建API视图的基础类
+from rest_framework.generics import ListAPIView  # 从DRF导入ListAPIView，用于创建只读的API视图
 from rest_framework.response import Response  # 从DRF导入Response对象，用于返回API响应
 from rest_framework import status  # 从DRF导入HTTP状态码，如 400 BAD REQUEST
 from rest_framework.parsers import MultiPartParser, FormParser  # 用于解析包含文件的表单数据
@@ -10,13 +11,17 @@ import random  # 用于生成随机提示词
 
 # 导入创建的模型和序列化器
 from .models import GameRound  # 导入模型
-from .serializers import PlayerTurnInputSerializer, GameRoundResultSerializer, GameStartSerializer # 导入序列化器
+from .serializers import PlayerTurnInputSerializer, GameRoundResultSerializer, GameStartSerializer, LeaderboardSerializer # 导入序列化器
 
 # 导入AI服务模块
 from . import ai_services
 
 # 导入Django的配置设置
 from django.conf import settings
+
+# 导入数据库聚合、分组功能
+from django.db.models import Count, Avg, F
+
 def game_view(request):
     """
     这个视图负责渲染游戏的主页面。
@@ -180,3 +185,54 @@ class StartGameAPIView(APIView):
                 return Response({
                     "message": "Failed to generate one or more images. Check server logs for details."
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# 历史记录 API 视图
+class GameRoundHistoryAPIView(ListAPIView):
+    """
+    显示用户的游戏历史记录。
+    只读接口，只响应 GET 请求。
+    """
+    # 指定这个视图应该使用哪个序列化器来格式化数据
+    serializer_class = GameRoundResultSerializer
+    # 指定这个视图需要用户登录才能访问
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        这是 ListAPIView 的核心方法，我们必须重写它。
+        它的返回值决定了这个列表包含了哪些数据。
+        """
+        # self.request.user 会自动获取到当前通过认证的用户对象
+        user = self.request.user
+        # 通过 user 对象，查询所有与他关联的 GameRound 记录，并按时间倒序排列
+        return GameRound.objects.filter(user=user).order_by('-timestamp')
+
+# 排行榜 API 视图
+class LeaderboardAPIView(ListAPIView):
+    """
+    获取战胜 AI 次数最多的用户排行榜。
+    这是一个公开的、只读的接口。
+    """
+    # 使用我们为排行榜创建的专用序列化器
+    serializer_class = LeaderboardSerializer
+    # 无需 permission_classes，因为排行榜是公开的
+
+    def get_queryset(self):
+        """
+        构建一个复杂的数据库查询来生成排行榜数据。
+        """
+        # F() 对象允许我们在查询中直接引用模型的字段值
+        win_margin = F('player_similarity_score') - F('ai_similarity_score')
+
+        queryset = GameRound.objects.filter(
+            winner='player'  # 1. 首先，只筛选出玩家获胜的记录
+        ).values(
+            username = F('user__username') # 2. 按用户名进行分组
+        ).annotate(
+            win_count=Count('id'), # 3. 为每个分组（即每个用户）计算获胜次数
+            avg_win_margin=Avg(win_margin) # 4. 为每个分组计算平均净胜分
+        ).order_by(
+            '-win_count', '-avg_win_margin' # 5. 首先按获胜次数降序排，次数相同再按平均净胜分降序排
+        )[:7] # 6. 最后，只取排名前 7 的记录
+
+        return queryset
