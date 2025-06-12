@@ -27,10 +27,12 @@ class PlayerTurnInputSerializer(serializers.Serializer):
         return data
 
 
-
-
 class GameRoundResultSerializer(serializers.ModelSerializer):
     # Meta 类用于配置序列化器
     class Meta:
         model = GameRound  # 告诉这个序列化器，它的结构是基于 GameRound 模型的。
         fields = '__all__' # 告诉序列化器，将模型中的所有字段都包含在输出结果里。
+
+class GameStartSerializer(serializers.Serializer):
+    # ImageField 用于处理文件上传。`required=False`表示这个字段是可选的。
+    uploaded_image = serializers.ImageField(required=False)

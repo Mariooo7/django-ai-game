@@ -1,17 +1,21 @@
 # 导入必要的模块
-import random
 from django.shortcuts import render # 用于渲染模板
 from rest_framework.views import APIView  # 从DRF导入APIView，这是创建API视图的基础类
 from rest_framework.response import Response  # 从DRF导入Response对象，用于返回API响应
 from rest_framework import status  # 从DRF导入HTTP状态码，如 400 BAD REQUEST
+from rest_framework.parsers import MultiPartParser, FormParser  # 用于解析包含文件的表单数据
+from django.core.files.storage import default_storage  # 用于管理文件存储
+import random  # 用于生成随机提示词
 
 # 导入创建的模型和序列化器
 from .models import GameRound  # 导入模型
-from .serializers import PlayerTurnInputSerializer, GameRoundResultSerializer # 导入序列化器
+from .serializers import PlayerTurnInputSerializer, GameRoundResultSerializer, GameStartSerializer # 导入序列化器
 
 # 导入AI服务模块
 from . import ai_services
 
+# 导入Django的配置设置
+from django.conf import settings
 def game_view(request):
     """
     这个视图负责渲染游戏的主页面。
@@ -50,7 +54,7 @@ class PlayTurnAPIView(APIView):
         # 检查是否成功获取到提示词
         if ai_prompt_from_image is None:
             return Response(
-                {"error": "AI failed to generate a prompt from the image. Check server logs for details."},
+                {"error": "AI failed to generate a prompt from the images. Check server logs for details."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -73,7 +77,7 @@ class PlayTurnAPIView(APIView):
         # --- 确保相似度计算成功 ---
         if player_similarity_score is None or ai_similarity_score is None:
             return Response(
-                {"error": "Failed to calculate image similarity. Check server logs for details."},
+                {"error": "Failed to calculate images similarity. Check server logs for details."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -100,3 +104,72 @@ class PlayTurnAPIView(APIView):
         # 6. 准备并返回响应
         output_serializer = GameRoundResultSerializer(game_round)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+
+class StartGameAPIView(APIView):
+    """
+    处理游戏开始（上传或随机生成原图）
+    """
+    # 添加文件解析器，用于处理包含文件的表单数据
+    parser_class = [MultiPartParser, FormParser]
+    # 将 GameStartSerializer 关联到这个视图，以便 DRF 的可浏览 API 能够识别它
+    serializer_class = GameStartSerializer
+
+    def post(self, request, *args, **kwargs):
+        # 检查序列化器是否有效
+        serializer = GameStartSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        uploaded_image = serializer.validated_data.get('uploaded_image')
+
+        if uploaded_image:
+            # --- 场景1：处理用户上传的图片 ---
+            # 调用 Django 的 default_storage 来保存文件。
+            file_name = default_storage.save(uploaded_image.name, uploaded_image)
+            # 构建文件的完整 URL
+            file_url = request.build_absolute_uri(settings.MEDIA_URL + file_name)
+            return Response({
+                "message": "Image uploaded and saved successfully.",
+                "original_image_url": file_url
+            }, status=status.HTTP_201_CREATED)
+
+        else:
+            # --- 场景2：随机生成图片 ---
+            # 这里我们使用一个简单的随机生成器来模拟生成图片的过程。
+            styles = [
+                "写实", "抽象", "印象派", "超现实主义", "复古", "现代", "简约",
+                "时尚", "浪漫", "暗黑", "梦幻", "蒸汽朋克", "赛博朋克"
+            ]
+            subjects = [
+                "自然风光", "城市街景", "建筑奇观", "动物世界", "美食佳肴",
+                "时尚穿搭", "历史场景", "科技产品", "运动瞬间", "节日庆典",
+                "人物肖像", "静物特写", "抽象图案"
+            ]
+            mediums = [
+                "油画", "水彩画", "丙烯画", "素描", "数字绘画", "摄影作品",
+                "3D 渲染", "插画", "拼贴画", "版画"
+            ]
+            moods = [
+                "欢快", "宁静", "神秘", "温馨", "悲伤", "震撼", "幽默",
+                "优雅", "紧张", "浪漫", "孤独", "励志"
+            ]
+
+            random_style = random.choice(styles)
+            random_subject = random.choice(subjects)
+            random_medium = random.choice(mediums)
+            random_mood = random.choice(moods)
+
+            prompt = (
+                f"一张{random_style}风格的{random_subject}主题{random_medium}作品，传达出{random_mood}的情绪，画面细节和构图随机"
+            )
+            image_url = ai_services.get_image_from_prompt(prompt)
+
+            if image_url:
+                return Response({
+                    "message": "Random images generated successfully.",
+                    "original_image_url": image_url
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response({
+                    "message": "Failed to generate one or more images. Check server logs for details."
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
