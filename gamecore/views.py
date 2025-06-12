@@ -4,6 +4,7 @@ from rest_framework.views import APIView  # 从DRF导入APIView，这是创建AP
 from rest_framework.response import Response  # 从DRF导入Response对象，用于返回API响应
 from rest_framework import status  # 从DRF导入HTTP状态码，如 400 BAD REQUEST
 from rest_framework.parsers import MultiPartParser, FormParser  # 用于解析包含文件的表单数据
+from rest_framework.permissions import IsAuthenticated  # 用于确保只有经过身份验证的用户才能访问视图
 from django.core.files.storage import default_storage  # 用于管理文件存储
 import random  # 用于生成随机提示词
 
@@ -28,6 +29,10 @@ class PlayTurnAPIView(APIView):
     """
     处理游戏回合的核心 API。
     """
+
+    # 指定该视图需要经过身份验证
+    permission_classes = [IsAuthenticated]
+
     # post 方法会自动处理所有发往此视图的 POST 类型的 HTTP 请求
     def post(self, request, *args, **kwargs):
         input_serializer = PlayerTurnInputSerializer(data=request.data)
@@ -90,7 +95,7 @@ class PlayTurnAPIView(APIView):
 
         # 5. 创建并保存 GameRound 记录到数据库
         game_round = GameRound.objects.create(
-            session_id=request.session.session_key,
+            user=request.user,
             original_image_url=original_image_url,
             player_prompt=player_prompt,
             player_generated_image_url=player_generated_image_url,
@@ -113,6 +118,8 @@ class StartGameAPIView(APIView):
     parser_class = [MultiPartParser, FormParser]
     # 将 GameStartSerializer 关联到这个视图，以便 DRF 的可浏览 API 能够识别它
     serializer_class = GameStartSerializer
+    # 保护这个视图，确保只有经过身份验证的用户才能访问
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         # 检查序列化器是否有效

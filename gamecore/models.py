@@ -1,15 +1,17 @@
 from django.db import models
+from  django.conf import settings
 
 # 定义一个名为 GameRound 的模型类，它继承自 models.Model
 class GameRound(models.Model):
     # --- 会话与记录信息 ---
-
-    # 定义一个名为 session_id 的字段，用于存储会话标识符
-    session_id = models.CharField(
-        max_length=255,  # 设置此文本字段的最大长度为255个字符
-        db_index=True,  # 为此字段创建数据库索引，以加快基于此字段的查询速度
-        help_text="用于标识用户单次访问或会话的标识符。"  # 在Admin后台等地方显示的辅助说明文字
+    # 定义一个名为 user 的字段，用于存储游戏的用户，使用 setting.AUTH_USER_MODEL 来指定用户模型
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,  # 引用 Django 的用户模型
+        on_delete=models.CASCADE,  # 如果用户被删除，与之关联的游戏轮次也会被删除
+        related_name='game_rounds',  # 反向关系，允许通过 user.game_rounds.all() 来访问用户的所有游戏轮次
+        help_text="游戏的用户。"  # 在Admin后台等地方显示的辅助说明文字
     )
+
     # 定义一个名为 timestamp 的字段，用于存储日期和时间
     timestamp = models.DateTimeField(
         auto_now_add=True,  # 在记录第一次创建时，自动将此字段的值设置为当前时间
@@ -85,7 +87,7 @@ class GameRound(models.Model):
     # 定义一个特殊方法 __str__，用于返回该模型实例的字符串表示形式
     def __str__(self):
         # 这个方法使得在Admin后台或其他地方显示对象时，更具可读性
-        return f"回合于 {self.timestamp.strftime('%Y-%m-%d %H:%M')}"  # 格式化时间戳并返回
+        return f"Round for {self.user.username} at {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
 
     # 定义一个内部 Meta 类，用于配置模型级别的选项
     class Meta:

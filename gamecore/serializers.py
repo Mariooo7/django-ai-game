@@ -1,5 +1,6 @@
 from rest_framework import serializers  # 从 DRF 库中导入 serializers 工具
 from .models import GameRound  # 从当前应用的 models.py 中导入我们定义的 GameRound 模型
+import re  # 导入 Python 的 re 模块，用于正则表达式操作
 
 class PlayerTurnInputSerializer(serializers.Serializer):
     # 定义一个名为 original_image_url 的字段，我们期望它是一个URL。
@@ -16,11 +17,12 @@ class PlayerTurnInputSerializer(serializers.Serializer):
         """
         player_prompt = data.get('player_prompt')
         char_limit = data.get('char_limit')
+        prompt_length_without_spaces = len(re.sub(r'\s+', '', player_prompt))
 
         if len(player_prompt) > char_limit:
             # 如果提示词长度超过限制，抛出一个验证错误
             raise serializers.ValidationError(
-                f"提示词长度 ({len(player_prompt)}) 超过了本轮设定的最大字符数 ({char_limit})。"
+                f"提示词有效字符数 ({prompt_length_without_spaces}) 超过了本轮设定的最大字符数 ({char_limit})。"
             )
 
         # 验证通过，返回数据
