@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import GameRound  # 从当前应用的 models.py 文件中导入 GameRound 模型
+from .models import GameRound, GameEvent # 从当前应用的 models.py 文件中导入 GameRound 模型
 
 # 使用 @admin.register(GameRound) 装饰器来注册模型，这是更现代的写法
 @admin.register(GameRound)
@@ -25,3 +25,9 @@ class GameRoundAdmin(admin.ModelAdmin):
 
     # ordering 指定在 Admin 中的默认排序方式
     ordering = ('-timestamp',)
+
+# 注册 GameEvent 模型，同样使用 @admin.register 装饰器
+@admin.register(GameEvent)
+class GameEventAdmin(admin.ModelAdmin):
+    list_display = ('timestamp', 'event_type', 'user', 'session_id')
+    list_filter = ('event_type', 'user')

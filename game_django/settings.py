@@ -153,8 +153,17 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# django-allauth 配置
+# --- django-allauth 配置 ---
 SITE_ID = 1
+
+# 允许使用用户名或邮箱登录
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+
+# 明确要求在注册时必须提供邮箱和用户名
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+
+# 在开发阶段，我们暂时关闭邮件验证流程
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # 配置 dj-rest-auth 认证方式为 token 认证
 REST_FRAMEWORK = {
@@ -165,7 +174,3 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
 }
-
-# 配置 allauth 邮箱验证
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # 开发时设置为 'none' 以跳过验证
-ACCOUNT_EMAIL_REQUIRED = True  # 注册时需要验证邮箱

@@ -21,5 +21,8 @@ urlpatterns = [
     # 创建一个 API 端点，用于处理排行榜的获取。
     path('api/leaderboard/', views.LeaderboardAPIView.as_view(), name='api_leaderboard'),
 
+    # 创建一个 API 端点，用于处理数据埋点的记录。
+    path('api/log_event/', views.GameEventAPIView.as_view(), name='api_log_event'),
+
 ]
 

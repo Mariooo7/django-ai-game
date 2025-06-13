@@ -49,3 +49,11 @@ class LeaderboardSerializer(serializers.Serializer):
     username = serializers.CharField(read_only=True)
     win_count = serializers.IntegerField(read_only=True)
     avg_win_margin = serializers.FloatField(read_only=True)
+
+# 为数据埋点创建序列化器
+class GameEventSerializer(serializers.Serializer):
+    """
+    用于格式化埋点数据的序列化器。
+    """
+    event_type = serializers.CharField(max_length=50)
+    event_data = serializers.JSONField(required=False)

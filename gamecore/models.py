@@ -81,7 +81,8 @@ class GameRound(models.Model):
         max_length=10,  # 设置此文本字段的最大长度为10个字符
         choices=WINNER_CHOICES,  # 将此字段的可选值限制为上面定义的WINNER_CHOICES
         blank=True,  # 允许在表单中为空
-        null=True  # 允许在数据库中为空
+        null=True,  # 允许在数据库中为空
+        db_index=True,  # 为此字段创建索引，以提高查询效率
     )
 
     # 定义一个特殊方法 __str__，用于返回该模型实例的字符串表示形式
@@ -93,3 +94,45 @@ class GameRound(models.Model):
     class Meta:
         # ordering 选项用于指定查询该模型时的默认排序方式
         ordering = ['-timestamp']  # 按 'timestamp' 字段降序（'-'号代表降序）排列，即最新的记录在前
+
+
+# 用于数据埋点的数据模型
+class GameEvent(models.Model):
+    # 若用户登录，关联到用户。若用户被删除，字段值为 NULL
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,  # 引用 Django 的用户模型
+        on_delete=models.SET_NULL,  # 如果用户被删除，此字段的值设置为 NULL
+        null=True,  # 允许此字段的值为空
+        blank=True, # 允许此字段在表单中为空
+        help_text="记录事件的用户"
+    )
+    # 记录 Session ID，用于追踪匿名用户的行为
+    session_id = models.CharField(
+        max_length=255,
+        db_index=True, # 为该字段创建索引，提高查询效率
+    )
+    # 事件类型，例如 'start_game_click', 'play_turn_success', 'submit_prompt'
+    event_type = models.CharField(
+        max_length=100,
+        db_index=True, # 为该字段创建索引，提高查询效率
+        help_text="事件的类型"
+    )
+    # 使用 JSONField 存储任何与事件相关的附加信息
+    event_data = models.JSONField(
+        default=dict, # 设置默认值为一个空字典
+        blank=True, # 允许此字段在表单中为空
+    )
+    # 时间戳
+    timestamp = models.DateTimeField(
+        auto_now_add=True, # 自动将此字段的值设置为创建对象时的当前时间
+    )
+
+    # 定义模型的字符串表示形式，用于在管理后台和其他地方显示对象的信息
+    def __str__(self):
+        user_identifier = self.user.username if self.user else self.session_id
+        return f" [{self.event_type}] by [{user_identifier}] at {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+
+    # 定义模型的元数据，用于配置模型的行为
+    class Meta:
+        # 指定模型的默认排序方式，按时间戳降序排列
+        ordering = ['-timestamp']

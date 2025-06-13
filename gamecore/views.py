@@ -10,8 +10,8 @@ from django.core.files.storage import default_storage  # 用于管理文件存�
 import random  # 用于生成随机提示词
 
 # 导入创建的模型和序列化器
-from .models import GameRound  # 导入模型
-from .serializers import PlayerTurnInputSerializer, GameRoundResultSerializer, GameStartSerializer, LeaderboardSerializer # 导入序列化器
+from .models import GameRound, GameEvent  # 导入模型
+from .serializers import PlayerTurnInputSerializer, GameRoundResultSerializer, GameStartSerializer, LeaderboardSerializer, GameEventSerializer # 导入序列化器
 
 # 导入AI服务模块
 from . import ai_services
@@ -236,3 +236,33 @@ class LeaderboardAPIView(ListAPIView):
         )[:7] # 6. 最后，只取排名前 7 的记录
 
         return queryset
+
+# 数据埋点 API 视图
+class GameEventAPIView(APIView):
+    """
+    用于记录用户行为的 API 视图。
+    公开接口，无需登录即可调用
+    """
+    # 无需 permission_classes，因为希望所有用户的行为都能被记录
+    def post(self, request, *args, **kwargs):
+        """
+        处理 POST 请求，记录用户行为。
+        """
+        # 验证输入数据是否符合我们定义的序列化器要求
+        serializer = GameEventSerializer(data=request.data)
+        if serializer.is_valid():
+            # 检查是否登录
+            user = request.user if request.user else None
+            # 获取 Session ID
+            session_id = request.session.session_key
+            # 创建 GameEvent 记录
+            GameEvent.objects.create(
+                user=user,
+                session_id=session_id,
+                event_type=serializer.data['event_type'],
+                event_data=serializer.data.get('event_data', {}),
+            )
+            # 返回 204 No Content，表示请求成功，但没有返回任何内容
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
