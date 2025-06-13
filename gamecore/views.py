@@ -22,13 +22,14 @@ from django.conf import settings
 # 导入数据库聚合、分组功能
 from django.db.models import Count, Avg, F
 
-def game_view(request):
-    """
-    这个视图负责渲染游戏的主页面。
-    """
-    # render 函数会找到指定的模板文件，用数据填充它，
-    # 然后返回一个包含最终HTML内容的HttpResponse对象。
-    return render(request, 'gamecore/index.html')
+# 使用 React 渲染游戏页面，不需要这个视图
+# def game_view(request):
+#     """
+#     这个视图负责渲染游戏的主页面。
+#     """
+#     # render 函数会找到指定的模板文件，用数据填充它，
+#     # 然后返回一个包含最终HTML内容的HttpResponse对象。
+#     return render(request, 'gamecore/index.html')
 
 class PlayTurnAPIView(APIView):
     """
