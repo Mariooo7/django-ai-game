@@ -1,10 +1,9 @@
 # 导入必要的模块
-from django.shortcuts import render # 用于渲染模板
 from rest_framework.views import APIView # 从DRF导入APIView，这是创建API视图的基础类
 from rest_framework.generics import ListAPIView  # 从DRF导入ListAPIView，用于创建只读的API视图
 from rest_framework.response import Response  # 从DRF导入Response对象，用于返回API响应
 from rest_framework import status  # 从DRF导入HTTP状态码，如 400 BAD REQUEST
-from rest_framework.parsers import MultiPartParser, FormParser  # 用于解析包含文件的表单数据
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser  # 用于解析包含文件的表单数据
 from rest_framework.permissions import IsAuthenticated  # 用于确保只有经过身份验证的用户才能访问视图
 from django.core.files.storage import default_storage  # 用于管理文件存储
 import random  # 用于生成随机提示词
@@ -121,7 +120,7 @@ class StartGameAPIView(APIView):
     处理游戏开始（上传或随机生成原图）
     """
     # 添加文件解析器，用于处理包含文件的表单数据
-    parser_class = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     # 将 GameStartSerializer 关联到这个视图，以便 DRF 的可浏览 API 能够识别它
     serializer_class = GameStartSerializer
     # 保护这个视图，确保只有经过身份验证的用户才能访问

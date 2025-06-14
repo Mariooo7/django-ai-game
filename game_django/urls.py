@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # <--- 将 /admin/ 路径指向 Django admin 应用
@@ -29,6 +30,14 @@ urlpatterns = [
     # 生成登录/登出的 URL
     path('accounts/', include('allauth.urls')),
     path('api-auth/', include('rest_framework.urls')),
+
+    # API 文档相关的 URL
+    # OpenAPI schema an Doku
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),  # 暴露 schema 文件
+    # Optional UI:
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    # 暴露 Swagger UI 界面
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),  # 暴露 Redoc 界面
 
 ]
 

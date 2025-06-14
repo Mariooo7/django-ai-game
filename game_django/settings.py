@@ -56,9 +56,16 @@ INSTALLED_APPS = [
     'allauth',  # Django allauth 框架\
     'allauth.account',  # Django allauth 框架的账户应用
     'allauth.socialaccount',  # Django allauth 框架的社交账户应用
+    'drf_spectacular',  # 用于生成 API 文档的工具
+
+    # 跨域请求
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    # 跨域请求中间件
+    "corsheaders.middleware.CorsMiddleware",
+
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -173,4 +180,23 @@ REST_FRAMEWORK = {
         # 2. TokenAuthentication: 允许前端应用通过发送 Token 来进行认证
         'rest_framework.authentication.TokenAuthentication',
     ],
+    # 配置 API 文档生成工具
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# CORS 设置
+# 明确允许的来源
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173", # 允许我们的 React 前端开发服务器访问
+    "http://127.0.0.1:5173", # 有时 localhost 会被解析成 127.0.0.1，两个都加上更保险
+]
+# 允许凭证（如 Cookies）
+CORS_ALLOW_CREDENTIALS = True
+
+# drf-spectacular 设置
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Picture Talk API',
+    'DESCRIPTION': 'API documentation for the Human vs AI picture talk game.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False, # 我们将在 URL 中自己处理 Schema
 }
