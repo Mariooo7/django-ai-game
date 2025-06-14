@@ -37,15 +37,17 @@ class PlayTurnAPIView(APIView):
 
     # 指定该视图需要经过身份验证
     permission_classes = [IsAuthenticated]
+    # 定义序列化器
+    serializer_class = PlayerTurnInputSerializer
 
     # post 方法会自动处理所有发往此视图的 POST 类型的 HTTP 请求
     def post(self, request, *args, **kwargs):
-        input_serializer = PlayerTurnInputSerializer(data=request.data)
+        serializer = self.serializer_class(data=request.data)
         # 验证输入数据是否有效， 否则返回错误响应
-        if not input_serializer.is_valid():
-            return Response(input_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        validated_data = input_serializer.validated_data
+        validated_data = serializer.validated_data
         original_image_url = validated_data['original_image_url']
         player_prompt = validated_data['player_prompt']
         language = validated_data['language']
@@ -132,19 +134,21 @@ class StartGameAPIView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        user = request.user
         uploaded_image = serializer.validated_data.get('uploaded_image')
+        original_image_url = None
 
         if uploaded_image:
             # --- 场景1：处理用户上传的图片 ---
             # 调用 Django 的 default_storage 来保存文件。
             file_name = default_storage.save(uploaded_image.name, uploaded_image)
             # 构建文件的完整 URL
-            file_url = request.build_absolute_uri(settings.MEDIA_URL + file_name)
-            return Response({
-                "message": "Image uploaded and saved successfully.",
-                "original_image_url": file_url
-            }, status=status.HTTP_201_CREATED)
+            original_image_url = f"{settings.PUBLIC_DOMAIN}{settings.MEDIA_URL}{file_name}"
 
+            return Response(
+                {"original_image_url": original_image_url},
+                status=status.HTTP_200_OK
+            )
         else:
             # --- 场景2：随机生成图片 ---
             # 这里我们使用一个简单的随机生成器来模拟生成图片的过程。
@@ -174,17 +178,18 @@ class StartGameAPIView(APIView):
             prompt = (
                 f"一张{random_style}风格的{random_subject}主题{random_medium}作品，传达出{random_mood}的情绪，画面细节和构图随机"
             )
-            image_url = ai_services.get_image_from_prompt(prompt)
 
-            if image_url:
-                return Response({
-                    "message": "Random images generated successfully.",
-                    "original_image_url": image_url
-                }, status=status.HTTP_201_CREATED)
-            else:
-                return Response({
-                    "message": "Failed to generate one or more images. Check server logs for details."
-                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            image_url_from_ai = ai_services.get_image_from_prompt(prompt)
+            if not image_url_from_ai:
+                return Response(
+                    {"error": "Failed to generate image from AI."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+            return Response(
+                {"original_image_url": image_url_from_ai},
+                status=status.HTTP_200_OK
+            )
 
 # 历史记录 API 视图
 class GameRoundHistoryAPIView(ListAPIView):

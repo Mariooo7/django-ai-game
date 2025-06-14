@@ -30,8 +30,12 @@ SECRET_KEY = "django-insecure-3#l(i8z(k+laq&l57(q-ywo$aoz+%5cbp4nzv2_^hhez-mpnpd
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'dbda-120-236-174-241.ngrok-free.app']
+CSRF_TRUSTED_ORIGINS = [
+    # 必须包含协议 'https://'
+    'https://dbda-120-236-174-241.ngrok-free.app',
+]
+PUBLIC_DOMAIN = "https://dbda-120-236-174-241.ngrok-free.app"
 
 # Application definition
 

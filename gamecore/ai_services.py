@@ -49,7 +49,7 @@ def get_ai_prompt_from_image(image_url: str, language: str = 'en', char_limit: i
         return "[错误：客户端未初始化，请检查 API 密钥和网络连接]"
 
     try:
-        # 调用 Gemini API 生成提示词
+        # 调用 豆包 API 生成提示词
         if language == 'en':
             prompt_instruction = f"You are an expert at writing descriptive prompts for text-to-image AI models. Describe the following image in a single, detailed sentence. Focus on the main subject, style, colors, and atmosphere. Your description must be strictly under {char_limit} characters."
         else:
@@ -75,7 +75,7 @@ def get_ai_prompt_from_image(image_url: str, language: str = 'en', char_limit: i
 
     except Exception as e:
         # 捕获并打印任何可能发生的错误（如网络问题、API认证失败等）
-        print(f"调用 Gemini API 时发生错误: {e}")
+        print(f"调用 豆包 API 时发生错误: {e}")
         return None # 出错时返回 None
 
 

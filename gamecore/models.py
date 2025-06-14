@@ -21,8 +21,7 @@ class GameRound(models.Model):
     # --- 原始图片信息 ---
 
     # 定义一个名为 original_image_url 的字段，用于存储原始图片的URL
-    original_image_url = models.URLField(
-        max_length=500,  # 设置URL的最大长度为500个字符
+    original_image_url = models.TextField(
         help_text="用于本轮游戏的原始图片的URL。"  # 辅助说明文字
     )
 

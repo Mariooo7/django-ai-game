@@ -20,7 +20,7 @@ export default function GameLayout() {
         <Outlet />
       </main>
       <footer className="w-full text-center p-4 text-xs text-gray-400">
-        github:xxxxxxxx.git &nbsp;&nbsp;&nbsp; contact us:xxxxxxxxxxxxx.gmail.com &nbsp;&nbsp;&nbsp; license:Apache.license
+        github:https://github.com/Mariooo7/django-ai-game.git &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; license:Apache.license
       </footer>
     </div>
   );

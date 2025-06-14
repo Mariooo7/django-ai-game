@@ -4,9 +4,9 @@ import re  # 导入 Python 的 re 模块，用于正则表达式操作
 
 class PlayerTurnInputSerializer(serializers.Serializer):
     # 定义一个名为 original_image_url 的字段，我们期望它是一个URL。
-    original_image_url = serializers.URLField(max_length=500)
+    original_image_url = serializers.URLField(max_length=1000)
     # 定义一个名为 player_prompt 的字段，我们期望它是一个字符串。
-    player_prompt = serializers.CharField(max_length=1000)
+    player_prompt = serializers.CharField(max_length=500)
     language = serializers.ChoiceField(choices=['en', 'zh'], default='en')
     char_limit = serializers.IntegerField(min_value=1, max_value=200, default=20)
 
