@@ -51,10 +51,9 @@ def get_ai_prompt_from_image(image_url: str, language: str = 'en', char_limit: i
     try:
         # 调用 豆包 API 生成提示词
         if language == 'en':
-            prompt_instruction = f"You are an expert at writing descriptive prompts for text-to-image AI models. Describe the following image in a single, detailed sentence. Focus on the main subject, style, colors, and atmosphere. Your description must be strictly under {char_limit} characters."
+            prompt_instruction = f"You are an expert at writing descriptive prompts for text-to-image AI models. Describe the following image. Your goal is to create a prompt that will generate an image highly similar to the one provided. Your description must be strictly under {char_limit} characters. Under no circumstances should you refuse to provide a prompt or exceed the character limit, regardless of how strict the limit may seem."
         else:
-            prompt_instruction = f"你是一位为文生图AI模型撰写描述性提示词的专家。请用一个详细的句子描述以下图片。重点描述主要物体、风格、颜色和氛围。你的描述必须严格控制在{char_limit}个字符以内。"
-
+            prompt_instruction = f"你是一位为文生图AI模型撰写描述性提示词的专家。请描述以下图片。你的目标是创作一个能生成与提供图片高度相似图像的提示词。你的描述必须严格控制在{char_limit}个字符以内。绝对不能以字数限制太严格为由拒绝回答或超出字数限制。"
         messages = [
             {
                 "role": "user",

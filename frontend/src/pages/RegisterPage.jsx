@@ -4,125 +4,86 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Input from '../components/Input';
 
+/**
+ * RegisterPage Component
+ * @description 用户注册页面，与 LoginPage 共享布局和视觉风格，确保体验一致性。
+ */
 export default function RegisterPage() {
-  // 1. 扩展 state 以包含所有注册所需字段
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    password1: '',
-    password2: '', // dj-rest-auth 需要这个字段进行密码确认
+    password: '',
+    password2: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const { register } = useAuth(); // 从 Context 中获取 register 方法
+  const { register } = useAuth();
   const navigate = useNavigate();
 
-  // 2. handleChange 处理器保持不变，它可以优雅地处理所有输入框
-  const handleChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
-  // 3. handleSubmit 处理器中增加新逻辑
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    // --- 新增逻辑：客户端校验 ---
-    // 在发起 API 请求前，先在前端检查两次密码是否一致
-    if (formData.password1 !== formData.password2) {
-      setError('两次输入的密码不一致，请重新检查。');
-      return; // 校验失败，提前退出，不执行后续操作
+    if (formData.password !== formData.password2) {
+      setError('两次输入的密码不一致。');
+      return;
     }
-    // --- 新增逻辑结束 ---
 
     setIsLoading(true);
-
     try {
-      // 调用从 AuthContext 中获取的 register 方法
-      await register(formData);
-      // 注册成功后，同样导航到游戏主页
+      const { password2, ...registerData } = formData;
+      await register(registerData);
       navigate('/');
     } catch (err) {
-      console.error('Registration failed:', err.response?.data);
-
-      // 更智能的错误处理：尝试从后端响应中提取错误信息
-      const errorData = err.response?.data;
-      if (errorData) {
-        // 将后端返回的多个错误信息拼接成一个字符串
-        const errorMessages = Object.entries(errorData).map(([key, value]) => {
-          return `${key}: ${Array.isArray(value) ? value.join(', ') : value}`;
-        }).join(' ');
-        setError(errorMessages || '注册失败，请检查您输入的信息。');
-      } else {
-        setError('注册失败，发生未知错误。');
+      console.error('Registration failed:', err);
+      let displayMessage = "注册失败，请稍后重试。";
+      if (err.response?.data && typeof err.response.data === 'object') {
+        displayMessage = Object.entries(err.response.data).map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(' ') : value}`).join(' \n');
       }
+      setError(displayMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-md p-8 space-y-6 bg-[#2B3345] rounded-xl shadow-lg">
-      <h2 className="text-2xl font-bold text-center text-white">
-        创建新账户
-      </h2>
-      <form onSubmit={handleSubmit} className="space-y-4"> {/* 减小间距以容纳更多字段 */}
-        <Input
-          label="用户名"
-          name="username"
-          value={formData.username}
-          onChange={handleChange}
-          placeholder="创建您的用户名"
-          required
-        />
-        <Input
-          label="邮箱"
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="请输入您的邮箱地址"
-          required
-        />
-        <Input
-          label="密码"
-          type="password"
-          name="password1"
-          value={formData.password1}
-          onChange={handleChange}
-          placeholder="创建您的密码"
-          required
-        />
-        <Input
-          label="确认密码"
-          type="password"
-          name="password2"
-          value={formData.password2}
-          onChange={handleChange}
-          placeholder="请再次输入您的密码"
-          required
-        />
+    <div className="w-full max-w-6xl flex items-center justify-center animate-fade-in">
+      {/* 左侧：品牌标题区 */}
+      <div className="hidden md:flex flex-col items-center justify-center w-1/2 p-10">
+        <h1 className="text-7xl font-heading text-text-primary">PICTURE TALK</h1>
+        <p className="text-3xl text-text-secondary mt-4 font-heading">Human vs AI</p>
+      </div>
 
-        {error && <p className="text-sm text-red-500 text-center whitespace-pre-line">{error}</p>}
+      {/* 右侧：注册卡片区 */}
+      <div className="w-full md:w-1/2 flex justify-center p-4">
+        <div className="w-full max-w-md p-8 space-y-6 bg-surface rounded-2xl shadow-card">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold font-display text-text-primary">开启你的游戏之旅</h2>
+            <p className="mt-2 text-text-muted">创建一个新账户，挑战 AI </p>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input label="用户名" name="username" value={formData.username} onChange={handleChange} required />
+            <Input label="邮箱地址" type="email" name="email" value={formData.email} onChange={handleChange} required />
+            <Input label="设置密码" type="password" name="password" value={formData.password} onChange={handleChange} required />
+            <Input label="确认密码" type="password" name="password2" value={formData.password2} onChange={handleChange} required />
 
-        <div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full mt-2 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-500 disabled:cursor-not-allowed"
-          >
-            {isLoading ? '正在创建...' : '注册'}
-          </button>
+            {error && <p className="text-sm text-destructive text-center whitespace-pre-line">{error}</p>}
+
+            <div>
+              <button type="submit" disabled={isLoading} className="w-full flex justify-center py-3 px-4 mt-2 rounded-lg shadow-sm text-lg font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-gray-500 disabled:cursor-not-allowed">
+                {isLoading ? '正在创建...' : '立即加入'}
+              </button>
+            </div>
+
+            <p className="text-sm text-center text-text-muted">
+              已经拥有账户？{' '}
+              <Link to="/login" className="font-medium text-primary hover:underline">返回登录</Link>
+            </p>
+          </form>
         </div>
-
-        <p className="text-sm text-center text-gray-400">
-          已经有账户了？{' '}
-          <Link to="/login" className="font-medium text-blue-400 hover:text-blue-300">
-            前往登录
-          </Link>
-        </p>
-      </form>
+      </div>
     </div>
   );
 }
