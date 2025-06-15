@@ -133,23 +133,23 @@ export default function HomePage() {
           <div className="md:col-span-5 bg-surface p-6 rounded-2xl shadow-card flex flex-col items-center justify-center">
             {/* 核心修改：根据 gameState 在同一区域内渲染不同内容 */}
             {gameState === 'submitting' ? (
-              <div className="text-center text-text-primary animate-subtle-pulse">
-                <p className="text-2xl">正在与 AI 对战...</p>
-                <p className="text-text-secondary mt-2">这可能需要一些时间，请耐心等待</p>
-              </div>
+                <div className="text-center text-text-primary animate-ai-battle-smooth">
+                    <p className="text-2xl">正在与 AI 对战...</p>
+                    <p className="text-text-secondary mt-2">这可能需要一些时间，请耐心等待</p>
+                </div>
             ) : gameState === 'finished' && gameResult ? (
                 <div className="w-full max-w-6xl flex flex-col items-center animate-fade-in">
-                    <h2 className={`text-5xl font-bold mb-2 font-display animate-pulse ${winnerColorClass}`}>
+                    <h2 className={`text-3xl font-bold mb-1 font-display animate-pulse ${winnerColorClass}`}>
                         {gameResult.winner === 'player' && '恭喜你，挑战成功！'}
                         {gameResult.winner === 'ai' && '很遗憾，AI 更胜一筹！'}
                         {gameResult.winner === 'draw' && '平分秋色，再接再厉！'}
                     </h2>
-                    <p className="text-xl text-text-secondary mb-6">这是本轮的对战结果</p>
+                    <p className="text-xl text-text-secondary mb-1">这是本轮的对战结果</p>
                     <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
                         <ResultCard title="你的提示词生成的图像" generatedImageUrl={gameResult.player_generated_image_url} prompt={gameResult.player_prompt} score={gameResult.player_similarity_score} isWinner={gameResult.winner === 'player'} />
                         <ResultCard title="AI的提示词生成的图像" generatedImageUrl={gameResult.ai_generated_image_url} prompt={gameResult.ai_generated_prompt_from_image} score={gameResult.ai_similarity_score} isWinner={gameResult.winner === 'ai'} />
                     </div>
-                    <button onClick={resetGame} className="mt-6 bg-primary hover:bg-primary-hover text-white font-bold py-4 px-8 rounded-lg text-xl transition-transform hover:scale-105">再玩一次</button>
+                    <button onClick={resetGame} className="mt-4 w-full bg-primary hover:bg-primary-hover text-white font-bold py-2 px-12 rounded-lg text-2xl transition-transform hover:scale-105">再玩一次</button>
                 </div>
             ) : (
               <div className="w-full h-full flex flex-col">
@@ -166,7 +166,7 @@ export default function HomePage() {
                   <div className="text-right text-sm text-text-muted mt-1">{playerPrompt.length} / {gameSettings.char_limit}</div>
                   {error && <p className="my-2 text-sm text-destructive text-center">{error}</p>}
                   <button type="submit" disabled={!originalImageUrl || gameState !== 'idle'}
-                      className="mt-4 w-full bg-success hover:bg-success-hover text-white font-bold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg">
+                      className="mt-4 w-full bg-success hover:bg-success-hover text-white font-bold py-2 px-12 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-2xl">
                       {gameState === 'submitting' ? '正在提交...' : '生成图像，挑战 AI！'}
                   </button>
                 </form>
