@@ -13,29 +13,41 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv  # 导入 load_dotenv 用于加载 .env 文件
-
-# 加载 .env 文件中的环境变量
-load_dotenv()
+from urllib.parse import urlparse  # 导入 urlparse 用于解析URL
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# 加载 .env 文件中的环境变量
+load_dotenv(BASE_DIR / '.env')  # 显式指定路径更可靠
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-3#l(i8z(k+laq&l57(q-ywo$aoz+%5cbp4nzv2_^hhez-mpnpd"
+# --- 从环境变量中安全地读取 SECRET_KEY ---
+# getenv 的第二个参数是默认值，但对于 SECRET_KEY，我们希望在生产环境中如果未设置则直接报错
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError("No SECRET_KEY set for Django application")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# --- 从环境变量中安全地读取 DEBUG 状态 ---
+# os.getenv 返回的是字符串，所以需要和 'True' 进行比较
+# 如果 .env 中没有定义 DEBUG，则默认为 False
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'e1ad-120-236-174-241.ngrok-free.app']
-CSRF_TRUSTED_ORIGINS = [
-    # 必须包含协议 'https://'
-    'https://e1ad-120-236-174-241.ngrok-free.app',
-]
-PUBLIC_DOMAIN = "https://e1ad-120-236-174-241.ngrok-free.app"
+# --- 从环境变量中安全地读取 ALLOWED_HOSTS ---
+# .env 文件中的值是 "domain.com,127.0.0.1"，我们需要将其解析成一个 Python 列表
+PUBLIC_DOMAIN = os.getenv('PUBLIC_DOMAIN', 'http://127.0.0.1:8000')
+allowed_hosts_str = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost')
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',')]
+# urlparse(PUBLIC_DOMAIN).hostname 会从 'https://your-domain.com' 中提取出 'your-domain.com'
+parsed_public_domain = urlparse(PUBLIC_DOMAIN).hostname
+if parsed_public_domain:
+    ALLOWED_HOSTS.append(parsed_public_domain)
+
+csrf_trusted_origins_str = os.getenv('CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_trusted_origins_str.split(',')] if csrf_trusted_origins_str else []
+
 
 # Application definition
 
@@ -153,7 +165,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles' # 用于 collectstatic
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -204,6 +217,3 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False, # 我们将在 URL 中自己处理 Schema
 }
-
-# 配置静态文件目录
-STATIC_ROOT = BASE_DIR / 'staticfiles'
