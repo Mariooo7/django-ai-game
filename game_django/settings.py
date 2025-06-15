@@ -204,3 +204,6 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False, # 我们将在 URL 中自己处理 Schema
 }
+
+# 配置静态文件目录
+STATIC_ROOT = BASE_DIR / 'staticfiles'
