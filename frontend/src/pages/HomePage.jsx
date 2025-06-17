@@ -159,7 +159,7 @@ export default function HomePage() {
                     value={playerPrompt}
                     onChange={(e) => setPlayerPrompt(e.target.value)}
                     placeholder={originalImageUrl ? "在这里输入你的提示词..." : "请先在左侧生成一张原图"}
-                    className="w-full h-full min-h-[200px] bg-secondary border-border rounded-md p-3 text-text-primary resize-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full h-full min-h-[200px] bg-secondary border-border rounded-md p-3 text-text-primary resize-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50 text-2xl"
                     maxLength={gameSettings.char_limit}
                     disabled={!originalImageUrl || gameState !== 'idle'}
                   />

@@ -66,7 +66,8 @@ def get_ai_prompt_from_image(image_url: str, language: str = 'en', char_limit: i
                 "content": [
                     {"type": "image_url", "image_url": {"url": image_url}},
                     {"type": "text", "text": prompt_instruction}
-                ]
+                ],
+                "thinking": "disabled",
             }
         ]
         # 调用 chat.completions.create 方法
@@ -94,7 +95,9 @@ def get_image_from_prompt(prompt: str) -> str | None:
         # 调用 豆包 API 生成图片
         response = client.images.generate(
             model=image_generation_model,
-            prompt=prompt
+            prompt=prompt,
+            size="512x512",
+
         )
         return response.data[0].url
 
