@@ -51,9 +51,15 @@ def get_ai_prompt_from_image(image_url: str, language: str = 'en', char_limit: i
     try:
         # 调用 豆包 API 生成提示词
         if language == 'en':
-            prompt_instruction = f"You are an expert at writing descriptive prompts for text-to-image AI models. Describe the following image.  Your description must be strictly under {char_limit} characters. "
+            if char_limit < 50:
+                prompt_instruction = f"You are an expert at writing descriptive prompts for text - to - image AI models. The character limit is only {char_limit}, which is quite tight. Please focus on the most essential and striking features of the following image. Distill the image's essence into a short yet powerful description. Your concise description will effectively guide the text - to - image model. Describe the image with strictly under {char_limit} characters. "
+            else:
+                prompt_instruction = f"You are an expert at writing descriptive prompts for text - to - image AI models. You have {char_limit} characters to describe the following image, which gives you enough room to be detailed. However, please still keep your description concise and focus on the key elements. Avoid unnecessary elaboration. Describe the image with strictly under {char_limit} characters. "
         else:
-            prompt_instruction = f"你是一位为文生图AI模型撰写描述性提示词的专家。请描述以下图片。你的描述必须严格控制在{char_limit}个字符以内。"
+            if char_limit < 50:
+                prompt_instruction = f"你是一位为文生图 AI 模型撰写描述性提示词的专家。当前字符限制仅为 {char_limit} 个，非常紧张。请聚焦于以下图片最核心、最突出的特征，将图片精髓提炼成简短却有力的描述。你简洁的描述将有效引导文生图模型。请严格在 {char_limit} 个字符内描述该图片。"
+            else:
+                prompt_instruction = f"你是一位为文生图 AI 模型撰写描述性提示词的专家。你有 {char_limit} 个字符来描述以下图片，这为你提供了足够的空间来详细描述。不过，请依然保持描述简洁，聚焦关键要素，避免不必要的赘述。请严格在 {char_limit} 个字符内描述该图片。"
         messages = [
             {
                 "role": "user",
