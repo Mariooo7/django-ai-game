@@ -193,7 +193,6 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     ],
     # 配置 API 文档生成工具
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
