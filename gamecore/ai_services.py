@@ -81,7 +81,7 @@ def get_ai_prompt_from_image(image_url: str, language: str = 'en', char_limit: i
 
     except Exception as e:
         # 捕获并打印任何可能发生的错误（如网络问题、API认证失败等）
-        print(f"调用 豆包 API 时发生错误: {e}")
+        print(f"调用豆包 API 时发生错误: ErrorType={type(e).__name__}, Message='{e}'")
         return None # 出错时返回 None
 
 
