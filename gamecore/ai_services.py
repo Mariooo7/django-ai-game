@@ -125,7 +125,7 @@ def calculate_image_similarity(image_url_1: str, image_url_2: str) -> float | No
 
                 # 2. 缩小图片尺寸。CLIP 等视觉模型通常在 224x224 的尺寸上训练，
                 #    使用这个尺寸可以极大地降低内存占用，且几乎不影响模型效果。
-                img = img.resize((112, 112))
+                img = img.resize((224, 224))
 
                 return img
 
