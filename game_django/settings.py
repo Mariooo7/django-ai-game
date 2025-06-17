@@ -192,9 +192,6 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 # 配置 dj-rest-auth 认证方式为 token 认证
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 1. SessionAuthentication: 允许在可浏览 API 中使用 Django 的 session 登录
-        'rest_framework.authentication.SessionAuthentication',
-        # 2. TokenAuthentication: 允许前端应用通过发送 Token 来进行认证
         'rest_framework.authentication.TokenAuthentication',
     ],
     # 配置 API 文档生成工具
