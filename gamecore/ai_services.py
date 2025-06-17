@@ -92,7 +92,6 @@ def get_image_from_prompt(prompt: str) -> str | None:
         return "[错误：客户端未初始化，请检查 API 密钥和网络连接]"
     try:
         # 调用 豆包 API 生成图片
-        contents = prompt
         response = client.images.generate(
             model=image_generation_model,
             prompt=prompt
@@ -122,7 +121,7 @@ def calculate_image_similarity(image_url_1: str, image_url_2: str) -> float | No
        # 定义内部辅助函数，用于加载来自 URL 的图片
         # --- 核心优化：增加图片预处理（调整尺寸）的内部函数 ---
         def load_and_preprocess_image(url: str) -> Image.Image:
-            with requests.get(url, stream=True, timeout=30) as response:
+            with requests.get(url, stream=True, timeout=120) as response:
                 response.raise_for_status()
                 img = Image.open(BytesIO(response.content))
 
