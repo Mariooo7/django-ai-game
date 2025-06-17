@@ -49,9 +49,9 @@ def get_ai_prompt_from_image(image_url: str, language: str = 'en', char_limit: i
             {
                 "role": "user",
                 "content": [
-                    {"type": "image_url", "content": image_url},
-                    {"type": "text", "content": prompt_instruction}
-                ],
+                    {"type": "image_url", "image_url": {"url": image_url}},
+                    {"type": "text", "text": prompt_instruction}
+                ]
             }
         ]
         response = client.chat.completions.create(
