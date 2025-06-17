@@ -6,7 +6,10 @@ from rest_framework import status  # 从DRF导入HTTP状态码，如 400 BAD REQ
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser  # 用于解析包含文件的表单数据
 from rest_framework.permissions import IsAuthenticated  # 用于确保只有经过身份验证的用户才能访问视图
 from django.core.files.storage import default_storage  # 用于管理文件存储
+from django.core.files.base import ContentFile  # 用于创建文件对象
 import random  # 用于生成随机提示词
+import requests  # 用于发送HTTP请求
+import uuid  # 用于生成唯一标识符
 
 # 导入创建的模型和序列化器
 from .models import GameRound, GameEvent  # 导入模型
@@ -178,14 +181,20 @@ class StartGameAPIView(APIView):
             )
 
             image_url_from_ai = ai_services.get_image_from_prompt(prompt)
+
             if not image_url_from_ai:
                 return Response(
                     {"error": "Failed to generate image from AI."},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
 
+            response = requests.get(image_url_from_ai, timeout=60)
+            file_name = f"ai_generated_{uuid.uuid4().hex}.jpg"
+            saved_path = default_storage.save(file_name, ContentFile(response.content))
+            original_image_url = f"{settings.PUBLIC_DOMAIN}{settings.MEDIA_URL}{saved_path}"
+
             return Response(
-                {"original_image_url": image_url_from_ai},
+                {"original_image_url": original_image_url},
                 status=status.HTTP_200_OK
             )
 

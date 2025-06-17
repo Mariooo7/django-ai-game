@@ -9,7 +9,7 @@ const apiClient = axios.create({
   // 暂时我们先硬编码，后续可以优化
   // 使用 import.meta.env 来访问 Vite 注入的环境变量
   baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`,
-  timeout: 120000, // 请求超时时间 120 秒
+  timeout: 150000, // 请求超时时间 150 秒
   headers: {
     // 'Content-Type': 'application/json', // 智能设置 Content-Type 头
   },
