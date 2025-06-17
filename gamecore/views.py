@@ -10,6 +10,8 @@ from django.core.files.base import ContentFile  # 用于创建文件对象
 import random  # 用于生成随机提示词
 import requests  # 用于发送HTTP请求
 import uuid  # 用于生成唯一标识符
+from io import BytesIO  # 用于处理二进制数据
+from PIL import Image  # 用于处理图像
 
 # 导入创建的模型和序列化器
 from .models import GameRound, GameEvent  # 导入模型
@@ -32,6 +34,95 @@ from django.db.models import Count, Avg, F
 #     # render 函数会找到指定的模板文件，用数据填充它，
 #     # 然后返回一个包含最终HTML内容的HttpResponse对象。
 #     return render(request, 'gamecore/index.html')
+
+
+class StartGameAPIView(APIView):
+    """
+    处理游戏开始。职责：接收图片（上传或AI生成），优化处理后，返回优化后图片的URL。
+    此视图不创建GameRound记录。
+    """
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = GameStartSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        uploaded_image = serializer.validated_data.get('uploaded_image')
+        source_image = None
+
+        try:
+            # 统一图片来源
+            if uploaded_image:
+                # 来源：用户上传
+                source_image = Image.open(uploaded_image)
+            else:
+                # --- 场景2：随机生成图片 ---
+                # 这里我们使用一个简单的随机生成器来模拟生成图片的过程。
+                styles = [
+                    "写实", "抽象", "印象派", "超现实主义", "复古", "现代", "简约",
+                    "时尚", "浪漫", "暗黑", "梦幻", "蒸汽朋克", "赛博朋克"
+                ]
+                subjects = [
+                    "自然风光", "城市街景", "建筑奇观", "动物世界", "美食佳肴",
+                    "时尚穿搭", "历史场景", "科技产品", "运动瞬间", "节日庆典",
+                    "人物肖像", "静物特写", "抽象图案"
+                ]
+                mediums = [
+                    "油画", "水彩画", "丙烯画", "素描", "数字绘画", "摄影作品",
+                    "3D 渲染", "插画", "拼贴画", "版画"
+                ]
+                moods = [
+                    "欢快", "宁静", "神秘", "温馨", "悲伤", "震撼", "幽默",
+                    "优雅", "紧张", "浪漫", "孤独", "励志"
+                ]
+
+                random_style = random.choice(styles)
+                random_subject = random.choice(subjects)
+                random_medium = random.choice(mediums)
+                random_mood = random.choice(moods)
+
+                prompt = (
+                    f"一张{random_style}风格的{random_subject}主题{random_medium}作品，传达出{random_mood}的情绪，画面细节和构图随机"
+                )
+
+                image_url_from_ai = ai_services.get_image_from_prompt(prompt)
+
+                if not image_url_from_ai:
+                    return Response(
+                        {"error": "Failed to generate image from AI."},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+
+                response = requests.get(image_url_from_ai, timeout=60)
+                response.raise_for_status()
+                source_image = Image.open(BytesIO(response.content))
+
+            # 统一优化流程
+            if source_image.mode != 'RGB':
+                source_image = source_image.convert('RGB')
+
+            source_image.thumbnail((512, 512))  # 等比缩放
+
+            thumb_io = BytesIO()
+            source_image.save(thumb_io, format='JPEG', quality=85)
+
+            # 使用UUID生成安全的文件名
+            optimized_filename = f"{uuid.uuid4().hex}.jpg"
+
+            # 使用Django的存储系统保存优化后的文件
+            saved_path = default_storage.save(f"uploads/{optimized_filename}", ContentFile(thumb_io.getvalue()))
+
+            # 构建并返回优化后图片的完整、可公开访问的URL
+            final_image_url = request.build_absolute_uri(f"{settings.MEDIA_URL}{saved_path}")
+
+            return Response({"original_image_url": final_image_url}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": f"An error occurred while processing the image: {str(e)}"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class PlayTurnAPIView(APIView):
     """
@@ -120,83 +211,6 @@ class PlayTurnAPIView(APIView):
         output_serializer = GameRoundResultSerializer(game_round)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
-class StartGameAPIView(APIView):
-    """
-    处理游戏开始（上传或随机生成原图）
-    """
-    # 添加文件解析器，用于处理包含文件的表单数据
-    parser_classes = [MultiPartParser, FormParser, JSONParser]
-    # 将 GameStartSerializer 关联到这个视图，以便 DRF 的可浏览 API 能够识别它
-    serializer_class = GameStartSerializer
-    # 保护这个视图，确保只有经过身份验证的用户才能访问
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        # 检查序列化器是否有效
-        serializer = GameStartSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        uploaded_image = serializer.validated_data.get('uploaded_image')
-
-        if uploaded_image:
-            # --- 场景1：处理用户上传的图片 ---
-            # 调用 Django 的 default_storage 来保存文件。
-            file_name = default_storage.save(uploaded_image.name, uploaded_image)
-            # 构建文件的完整 URL
-            original_image_url = f"{settings.PUBLIC_DOMAIN}{settings.MEDIA_URL}{file_name}"
-
-            return Response(
-                {"original_image_url": original_image_url},
-                status=status.HTTP_200_OK
-            )
-        else:
-            # --- 场景2：随机生成图片 ---
-            # 这里我们使用一个简单的随机生成器来模拟生成图片的过程。
-            styles = [
-                "写实", "抽象", "印象派", "超现实主义", "复古", "现代", "简约",
-                "时尚", "浪漫", "暗黑", "梦幻", "蒸汽朋克", "赛博朋克"
-            ]
-            subjects = [
-                "自然风光", "城市街景", "建筑奇观", "动物世界", "美食佳肴",
-                "时尚穿搭", "历史场景", "科技产品", "运动瞬间", "节日庆典",
-                "人物肖像", "静物特写", "抽象图案"
-            ]
-            mediums = [
-                "油画", "水彩画", "丙烯画", "素描", "数字绘画", "摄影作品",
-                "3D 渲染", "插画", "拼贴画", "版画"
-            ]
-            moods = [
-                "欢快", "宁静", "神秘", "温馨", "悲伤", "震撼", "幽默",
-                "优雅", "紧张", "浪漫", "孤独", "励志"
-            ]
-
-            random_style = random.choice(styles)
-            random_subject = random.choice(subjects)
-            random_medium = random.choice(mediums)
-            random_mood = random.choice(moods)
-
-            prompt = (
-                f"一张{random_style}风格的{random_subject}主题{random_medium}作品，传达出{random_mood}的情绪，画面细节和构图随机"
-            )
-
-            image_url_from_ai = ai_services.get_image_from_prompt(prompt)
-
-            if not image_url_from_ai:
-                return Response(
-                    {"error": "Failed to generate image from AI."},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-
-            response = requests.get(image_url_from_ai, timeout=60)
-            file_name = f"ai_generated_{uuid.uuid4().hex}.jpg"
-            saved_path = default_storage.save(file_name, ContentFile(response.content))
-            original_image_url = f"{settings.PUBLIC_DOMAIN}{settings.MEDIA_URL}{saved_path}"
-
-            return Response(
-                {"original_image_url": original_image_url},
-                status=status.HTTP_200_OK
-            )
 
 # 历史记录 API 视图
 class GameRoundHistoryAPIView(ListAPIView):

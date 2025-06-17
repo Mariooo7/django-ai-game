@@ -1,20 +1,5 @@
 from django.db import models
 from django.conf import settings
-import uuid
-import os
-
-# 新增：定义一个文件上传路径和重命名的函数
-def game_image_upload_path(filename):
-    """
-    自定义上传路径函数，用于自动重命名上传的文件。
-    这可以防止因文件名包含空格、特殊字符或重名导致的问题。
-    """
-    # 1. 从原始文件名中安全地获取扩展名
-    ext = filename.split('.')[-1]
-    # 2. 使用uuid4生成一个全球唯一的、不含特殊字符的字符串作为新文件名
-    new_filename = f"{uuid.uuid4()}.{ext}"
-    # 3. 返回最终的保存路径，所有图片都将被存放在 'media/uploads/' 目录下
-    return os.path.join('uploads', new_filename)
 
 
 class GameRound(models.Model):
@@ -31,14 +16,8 @@ class GameRound(models.Model):
     )
 
     # --- 原始图片信息 (核心修改) ---
-    # 1. 字段类型从 TextField 改为 ImageField，以正确处理和存储上传的图片文件。
-    # 2. 使用我们新创建的 game_image_upload_path 函数来自动处理上传文件的路径和命名。
-    original_image_url = models.ImageField(
-        upload_to=game_image_upload_path,
-        max_length=500,
-        blank=True,
-        null=True,
-        help_text="用于本轮游戏的原始图片，上传后会自动重命名并保存。"
+    original_image_url = models.TextField(
+        help_text="用于本轮游戏的原始图片的URL。"
     )
 
     # --- 玩家回合信息 ---
