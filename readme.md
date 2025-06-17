@@ -5,7 +5,7 @@
   # **Picture Talk: Human vs AI**
   ### 看图说话：人机对抗游戏
 
-  **一个基于大语言模型和图像识别技术构建的全栈Web应用，在这里，人类的创造力将与AI的逻辑生成能力一决高下。**
+  **一个基于大语言模型和图像识别技术构建的全栈Web应用，在这里，人类将与AI在文生图提示词编写领域一决高下。**
 
 </div>
 
@@ -39,10 +39,13 @@
 * **前后端分离架构**: 前端使用 **React (Vite + TailwindCSS)** 负责界面渲染与用户交互，后端使用 **Django + DRF** 负责处理API请求、用户认证和AI服务调度，架构清晰，易于扩展。
 * **生产级部署实践**: 项目完整走过了从开发到生产的全过程，采用 **Nginx + Gunicorn + MySQL** 的经典组合部署在腾讯云服务器上，并解决了包括API性能瓶颈、CORS、CSRF、DNS解析、服务器配置在内的一系列真实世界问题。
 
+
 ### 🎨 Figma 原型设计
-我们相信好的产品始于好的设计。项目的前期UI/UX设计及迭代均在Figma中完成。
+好的产品始于好的设计。
+
+项目的前期UI/UX设计及迭代在Figma中完成。
 <br>
-**[➡️ 点击查看 Figma 原型设计](https://www.figma.com/design/your-project-link)** *(请将此链接替换为你自己的Figma项目地址)*
+**[➡️ 点击查看 Figma 原型设计](https://www.figma.com/design/P60rPIlfPWI528XiZcdMjF/PROMPT_PK_GAME?node-id=0-1&t=MjNQSV8O297ff33s-1)**
 
 ## 🌍 线上体验 (Live Demo)
 
@@ -59,9 +62,11 @@
 * Node.js 18+ 和 npm
 * MySQL Server
 * Git
+* **Ngrok** (用于本地接收外部API回调，详见下文)
 
 ### 后端配置 (Backend)
 1.  **克隆仓库**
+    
     ```bash
     git clone [https://github.com/Mariooo7/django-ai-game.git](https://github.com/Mariooo7/django-ai-game.git)
     cd django-ai-game
@@ -92,6 +97,8 @@
         
         # AI Service (Doubao)
         ARK_API_KEY='your-doubao-api-key' # 豆包大模型的API密钥
+        
+        PUBLIC_DOMAIN='[http://your-ngrok-url.ngrok-free.app](http://your-ngrok-url.ngrok-free.app)' # ❗重要：填入ngrok生成的URL
         ```
 5.  **数据库迁移**
     ```bash
@@ -118,6 +125,22 @@
     ```
     前端将在 `http://localhost:5173` (或另一个可用端口) 运行。得益于`vite.config.js`中的代理配置，所有对`/api`的请求都会被自动转发到正在运行的后端服务上。
 
+### 前后端连接说明 
+
+在开发环境中，前端运行于`localhost:5173`，后端运行于`localhost:8000`。为了解决跨域问题，我们在`frontend/vite.config.js`中配置了**Vite代理**。所有从前端发往`/api`的请求都会被自动代理到`http://127.0.0.1:8000`，实现了无缝的本地开发体验。 
+
+### 4. (可选) 使用 Ngrok 暴露本地服务 
+
+如果你需要在手机上测试或向他人展示本地开发版本，可以使用`ngrok`。 
+
+1. 安装 `ngrok`。 
+2. 确保你的后端服务正在 `8000` 端口运行。
+3.  在终端运行: `ngrok http 8000` 
+4. Ngrok会提供一个公网HTTPS域名（如 `https://....ngrok-free.app`）。 
+5. **重要**: 将这个域名添加到后端`settings.py`的`ALLOWED_HOSTS`列表中，并重启后端服务。 
+
+---
+
 ## 🗺️ 项目路线图 (Roadmap)
 
 我们使用看板风格来追踪项目的进展和未来规划。
@@ -130,7 +153,50 @@
 | **部署与运维**: 成功部署至生产服务器 (Nginx+Gunicorn)，并解决了一系列性能、配置和API兼容性问题。 |                        | 🚀 **社交功能**: 增加对战结果分享、好友对战邀请等功能。       |
 | **核心优化**:<br />解决了AI识图的超时问题（通过后端图片优化） <br />解决了文件名包含空格等特殊字符的问题（通过UUID重命名） <br />优化了排行榜和历史记录的UI/UX（弹窗、颜色高亮） \| |                        | 🚀 **CI/CD集成**: 建立持续集成/持续部署流水线，实现代码提交后自动测试和部署。 |
 
+## 📊 系统架构与数据流 (Architecture)
 
+下面这张图表清晰地展示了本项目的技术架构和核心数据流。
+
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant Browser as 浏览器 (React)
+    participant Nginx as Nginx服务器
+    participant Gunicorn as Gunicorn
+    participant Django as Django后端
+    participant Doubao as 豆包AI API
+    participant MySQL as 数据库
+
+    User->>Browser: 1. 上传图片开局
+    Browser->>Nginx: 2. POST /api/start_game/ (图片)
+    Nginx->>Gunicorn: 3. 转发请求
+    Gunicorn->>Django: 4. StartGameAPIView处理
+    Django->>Django: 5. 优化图片 (缩小/压缩)
+    Django->>Nginx: 6. 保存优化后的小图
+    Nginx-->>Django: 7. 返回小图路径
+    Django-->>Gunicorn: 8. 返回小图的公网URL
+    Gunicorn-->>Nginx: 9. 返回URL
+    Nginx-->>Browser: 10. 返回URL
+    Browser-->>User: 11. 显示原图，等待输入
+
+    User->>Browser: 12. 输入Prompt，点击对战
+    Browser->>Nginx: 13. POST /api/play_turn/ (小图URL + Prompt)
+    Nginx->>Gunicorn: 14. 转发请求
+    Gunicorn->>Django: 15. PlayTurnAPIView处理
+    Django->>Doubao: 16. 发送图生文请求 (使用小图URL)
+    Doubao-->>Django: 17. 返回AI的Prompt
+    Django->>Doubao: 18. 发送文生图请求 (玩家Prompt)
+    Doubao-->>Django: 19. 返回玩家图片URL
+    Django->>Doubao: 20. 发送文生图请求 (AI Prompt)
+    Doubao-->>Django: 21. 返回AI图片URL
+    Django->>Django: 22. 计算相似度得分
+    Django->>MySQL: 23. 创建GameRound记录
+    MySQL-->>Django: 24. 记录成功
+    Django-->>Gunicorn: 25. 返回完整对战结果
+    Gunicorn-->>Nginx: 26. 返回结果
+    Nginx-->>Browser: 27. 返回结果
+    Browser-->>User: 28. 显示对战结果
+```
 
 ## 📄 许可证 (License)
 
