@@ -1,11 +1,19 @@
 // frontend/tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 import defaultTheme from "tailwindcss/defaultTheme";
+import colors from 'tailwindcss/colors';
 
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  safelist: [
+    'bg-yellow-400/20',
+    'bg-gray-300/20',
+    'bg-yellow-600/20',
+    'bg-green-500/10',
+    'bg-red-500/10',
   ],
   theme: {
     // 我们直接定义颜色，而不是在 extend 中，以便拥有一个全新的、干净的调色板
@@ -41,6 +49,13 @@ export default {
       },
       // 边框颜色
       'border': '#4B5563',
+
+      green: colors.green,
+      red: colors.red,
+      yellow: colors.yellow,
+      gray: colors.gray,
+      blue: colors.blue,
+      purple: colors.purple,
     },
     fontFamily: {
       // 'sans' 是默认字体。这个字体栈优先使用系统UI字体，确保在所有平台都有最佳原生体验

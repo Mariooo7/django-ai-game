@@ -1,13 +1,19 @@
 // frontend/src/components/Layout.jsx
+import React, { useState } from 'react'; // 引入 useState
 import { Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-
+import { FaHistory, FaTrophy, FaSignOutAlt } from 'react-icons/fa';
+import HistoryModal from './modals/HistoryModal';
+import LeaderboardModal from './modals/LeaderboardModal';
 /**
  * Layout Component
  * @description 应用的全局布局。采用标准的 Flexbox 列布局，确保页头和页脚固定，主内容区自适应填充，解决页面过高问题。
  */
 export default function Layout() {
   const { isAuthenticated, logout, user } = useAuth();
+    // --- 新增状态来控制弹窗的显示 ---
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 
   return (
     // 主容器：设置为 Flexbox 列布局，并确保其最小高度为整个屏幕
@@ -22,23 +28,29 @@ export default function Layout() {
         </div>
 
         {isAuthenticated && (
-          <nav className="flex items-center gap-4">
-            <Link to="/history" title="历史记录" className="text-base text-text-secondary hover:text-primary transition-colors">
-              战绩
-            </Link>
-            <Link to="/leaderboard" title="排行榜" className="text-base text-text-secondary hover:text-primary transition-colors">
-              排行
-            </Link>
+          <nav className="flex items-center gap-6">
+            {/* --- 将Link改为button，用onClick控制弹窗 --- */}
+            <button onClick={() => setIsHistoryOpen(true)} title="历史记录" className="flex items-center gap-2 text-base text-text-secondary hover:text-primary transition-colors">
+              <FaHistory />
+              <span>战绩</span>
+            </button>
+            <button onClick={() => setIsLeaderboardOpen(true)} title="排行榜" className="flex items-center gap-2 text-base text-text-secondary hover:text-primary transition-colors">
+              <FaTrophy />
+              <span>排行</span>
+            </button>
+            {/* --- 为登出按钮添加图标，使其风格统一 --- */}
             <button
               onClick={logout}
               title="登出"
-              className="text-base bg-destructive hover:brightness-125 text-white font-bold py-1 px-3 rounded-md transition-colors"
+              className="flex items-center gap-2 text-base bg-destructive hover:brightness-125 text-white font-bold py-1 px-3 rounded-md transition-all"
             >
-              登出
+              <FaSignOutAlt />
+              <span>登出</span>
             </button>
           </nav>
         )}
       </header>
+
 
       {/* 主内容区:
           - 使用 flex-grow 占据所有剩余的垂直空间。
@@ -61,6 +73,11 @@ export default function Layout() {
           license:Apache License 2.0
         </a>
       </footer>
+
+        {/* --- 在这里渲染弹窗组件 --- */}
+        <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
+        <LeaderboardModal isOpen={isLeaderboardOpen} onClose={() => setIsLeaderboardOpen(false)} />
+
     </div>
   );
 }

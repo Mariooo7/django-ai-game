@@ -5,8 +5,6 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import HistoryPage from './pages/HistoryPage';
-import LeaderboardPage from './pages/LeaderboardPage';
 
 // 导入组件
 import Layout from './components/Layout.jsx'; // 游戏布局
@@ -22,8 +20,6 @@ const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: '/', element: <HomePage /> },
-          { path: '/history', element: <HistoryPage /> },
-          { path: '/leaderboard', element: <LeaderboardPage /> },
         ],
       },
     ],
