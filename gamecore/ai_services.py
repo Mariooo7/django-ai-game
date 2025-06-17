@@ -7,7 +7,7 @@ from volcenginesdkarkruntime import Ark
 from sentence_transformers import SentenceTransformer, util
 
 # --- 全局初始化 (这些操作只在 Django 启动时执行一次，以提高性能) ---
-# 1. 配置 Google Gemini API 客户端
+# 1. 配置客户端
 try:
     # 从 .env 文件加载的环境变量中获取 API 密钥
     ARK_API_KEY = os.getenv('ARK_API_KEY')
@@ -114,15 +114,31 @@ def calculate_image_similarity(image_url_1: str, image_url_2: str) -> float | No
 
     try:
        # 定义内部辅助函数，用于加载来自 URL 的图片
-        def load_image(url: str) -> Image.Image:
-            with requests.get(url, stream=True, timeout=20) as response:
+        # --- 核心优化：增加图片预处理（调整尺寸）的内部函数 ---
+        def load_and_preprocess_image(url: str) -> Image.Image:
+            with requests.get(url, stream=True, timeout=30) as response:
                 response.raise_for_status()
-                return Image.open(BytesIO(response.content))
+                img = Image.open(BytesIO(response.content))
 
-        image_1 = load_image(image_url_1)
-        image_2 = load_image(image_url_2)
+                # 1. 转换为 RGB，确保图片格式统一，避免 RGBA 等格式带来的问题
+                img = img.convert("RGB")
 
-        embeddings = clip_model.encode([image_1, image_2], convert_to_tensor=True)
+                # 2. 缩小图片尺寸。CLIP 等视觉模型通常在 224x224 的尺寸上训练，
+                #    使用这个尺寸可以极大地降低内存占用，且几乎不影响模型效果。
+                img = img.resize((224, 224))
+
+                return img
+
+        image_1 = load_and_preprocess_image(image_url_1)
+        image_2 = load_and_preprocess_image(image_url_2)
+
+        if not image_1 or not image_2:
+            return None
+
+        embeddings = clip_model.encode(
+            [image_1, image_2],
+            convert_to_tensor=True,
+        )
         cosine_scores = util.cos_sim(embeddings[0], embeddings[1])
         similarity_score = cosine_scores.item() * 100
 
