@@ -7,7 +7,8 @@ const apiClient = axios.create({
   // 从环境变量中读取后端 API 的基础 URL
   // 在开发环境中，我们可以在 .env.local 文件中设置 VITE_API_BASE_URL = http://127.0.0.1:8000
   // 暂时我们先硬编码，后续可以优化
-  baseURL: 'http://127.0.0.1:8000/api',
+  // 使用 import.meta.env 来访问 Vite 注入的环境变量
+  baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`,
   timeout: 60000, // 请求超时时间 60 秒
   headers: {
     // 'Content-Type': 'application/json', // 智能设置 Content-Type 头

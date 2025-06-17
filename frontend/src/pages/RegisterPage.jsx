@@ -12,7 +12,7 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    password: '',
+    password1: '',
     password2: '',
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -26,21 +26,23 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
 
-    if (formData.password !== formData.password2) {
+    if (formData.password1 !== formData.password2) {
       setError('两次输入的密码不一致。');
       return;
     }
 
     setIsLoading(true);
     try {
-      const { password2, ...registerData } = formData;
-      await register(registerData);
+      await register(formData);
       navigate('/');
     } catch (err) {
       console.error('Registration failed:', err);
       let displayMessage = "注册失败，请稍后重试。";
       if (err.response?.data && typeof err.response.data === 'object') {
-        displayMessage = Object.entries(err.response.data).map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(' ') : value}`).join(' \n');
+        displayMessage = Object.entries(err.response.data).map(([key, value]) =>
+        // 将 password1 和 password2 这种字段名替换为更友好的“密码”
+        `${key.replace(/password[12]/, '密码')}: ${Array.isArray(value) ? value.join(' ') : value}`
+        ).join('\n');
       }
       setError(displayMessage);
     } finally {
@@ -66,7 +68,7 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input label="用户名" name="username" value={formData.username} onChange={handleChange} required />
             <Input label="邮箱地址" type="email" name="email" value={formData.email} onChange={handleChange} required />
-            <Input label="设置密码" type="password" name="password" value={formData.password} onChange={handleChange} required />
+            <Input label="设置密码" type="password" name="password1" value={formData.password1} onChange={handleChange} required />
             <Input label="确认密码" type="password" name="password2" value={formData.password2} onChange={handleChange} required />
 
             {error && <p className="text-sm text-destructive text-center whitespace-pre-line">{error}</p>}
