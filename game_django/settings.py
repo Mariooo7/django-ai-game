@@ -216,4 +216,11 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'API documentation for the Human vs AI picture talk game.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False, # 我们将在 URL 中自己处理 Schema
+
+    # 这个设置强制 Swagger UI 从一个固定的、我们已知的路径加载 schema
+    # 它解决了在反向代理后，UI 无法正确构建 schema URL 的问题
+    'SWAGGER_UI_SETTINGS': {
+    'url': '/api/schema/',
+    },
 }
+
