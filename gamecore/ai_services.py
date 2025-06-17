@@ -2,6 +2,7 @@ import os
 import requests
 from PIL import Image
 from io import BytesIO
+import traceback
 
 from volcenginesdkarkruntime import Ark
 from sentence_transformers import SentenceTransformer, util
@@ -80,9 +81,15 @@ def get_ai_prompt_from_image(image_url: str, language: str = 'en', char_limit: i
         return response.choices[0].message.content
 
     except Exception as e:
-        # 捕获并打印任何可能发生的错误（如网络问题、API认证失败等）
-        print(f"调用豆包 API 时发生错误: ErrorType={type(e).__name__}, Message='{e}'")
-        return None # 出错时返回 None
+        print("=" * 80)
+        print("!!!!!! AI SERVICE CRITICAL ERROR !!!!!!")
+        print(f"Function: get_ai_prompt_from_image")
+        print(f"Error Type: {type(e).__name__}")
+        print(f"Error Message: {e}")
+        print("------ TRACEBACK ------")
+        traceback.print_exc()  # 打印完整的异常堆栈
+        print("=" * 80)
+        return None
 
 
 def get_image_from_prompt(prompt: str) -> str | None:
@@ -102,9 +109,15 @@ def get_image_from_prompt(prompt: str) -> str | None:
         return response.data[0].url
 
     except Exception as e:
-        # 捕获并打印任何可能发生的错误（如网络问题、API认证失败等）
-        print(f"调用 豆包 API 生成图像时发生错误: {e}")
-        return None # 出错时返回 None
+        print("=" * 80)
+        print("!!!!!! AI SERVICE CRITICAL ERROR !!!!!!")
+        print(f"Function: get_image_from_prompt")
+        print(f"Error Type: {type(e).__name__}")
+        print(f"Error Message: {e}")
+        print("------ TRACEBACK ------")
+        traceback.print_exc()  # 打印完整的异常堆栈
+        print("=" * 80)
+        return None
 
 def calculate_image_similarity(image_url_1: str, image_url_2: str) -> float | None:
     """
