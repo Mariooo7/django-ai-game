@@ -7,8 +7,6 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser  # �
 from rest_framework.permissions import IsAuthenticated  # 用于确保只有经过身份验证的用户才能访问视图
 from django.core.files.storage import default_storage  # 用于管理文件存储
 from django.core.files.base import ContentFile  # 用于创建文件对象
-from django.views.decorators.csrf import csrf_exempt  # 用于禁用CSRF保护
-from django.utils.decorators import method_decorator  # 用于装饰类视图方法
 import random  # 用于生成随机提示词
 import requests  # 用于发送HTTP请求
 import uuid  # 用于生成唯一标识符
@@ -35,7 +33,6 @@ from django.db.models import Count, Avg, F
 #     # 然后返回一个包含最终HTML内容的HttpResponse对象。
 #     return render(request, 'gamecore/index.html')
 
-@method_decorator(csrf_exempt, name='dispatch')
 class PlayTurnAPIView(APIView):
     """
     处理游戏回合的核心 API。
@@ -123,7 +120,6 @@ class PlayTurnAPIView(APIView):
         output_serializer = GameRoundResultSerializer(game_round)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
-@method_decorator(csrf_exempt, name='dispatch')
 class StartGameAPIView(APIView):
     """
     处理游戏开始（上传或随机生成原图）
@@ -203,7 +199,6 @@ class StartGameAPIView(APIView):
             )
 
 # 历史记录 API 视图
-@method_decorator(csrf_exempt, name='dispatch')
 class GameRoundHistoryAPIView(ListAPIView):
     """
     显示用户的游戏历史记录。
@@ -225,7 +220,6 @@ class GameRoundHistoryAPIView(ListAPIView):
         return GameRound.objects.filter(user=user).order_by('-timestamp')
 
 # 排行榜 API 视图
-@method_decorator(csrf_exempt, name='dispatch')
 class LeaderboardAPIView(ListAPIView):
     """
     获取战胜 AI 次数最多的用户排行榜。
@@ -256,7 +250,6 @@ class LeaderboardAPIView(ListAPIView):
         return queryset
 
 # 数据埋点 API 视图
-@method_decorator(csrf_exempt, name='dispatch')
 class GameEventAPIView(APIView):
     """
     用于记录用户行为的 API 视图。
